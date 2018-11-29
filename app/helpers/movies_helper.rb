@@ -5,6 +5,6 @@ module MoviesHelper
   end
   
   def selected(parameter, name)
-    parameter == name ? "hilite" : ""
+    parameter.to_s == name ? "hilite" : ""
   end
 end
