@@ -28,12 +28,12 @@ class MoviesController < ApplicationController
     
     @all_ratings = Movie.movie_ratings
     @selected_key_ratings = params[:ratings].map{ | k,v |  k }.to_a if params[:ratings]
-    @selected_key_ratings = {} unless params[:ratings]
+    @selected_key_ratings = @all_ratings unless params[:ratings]
 
-    ratings_where = @all_ratings unless params[:ratings]
-    ratings_where = @selected_key_ratings if params[:ratings]
+#    ratings_where = @all_ratings unless params[:ratings]
+#    ratings_where = @selected_key_ratings if params[:ratings]
     
-    @movies = Movie.all.where(rating: ratings_where).order(params[:sort_param])
+    @movies = Movie.all.where(rating: @selected_key_ratings).order(params[:sort_param])
 
     common_url_params = {}
     @title_url_param = {}
