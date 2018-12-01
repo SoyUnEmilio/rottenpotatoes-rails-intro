@@ -11,11 +11,43 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.movie_ratings()
-    ratings_param = params[:ratings].to_a.map {|k,v|  k}
-    @selected_key_ratings = ratings_param.to_a
-    ratings_param = @all_ratings if ratings_param.length == 0
-    @movies = Movie.all.where(rating: ratings_param).order(params[:sort_param])
+    # initialize session
+    session[:params] = {} unless session[:params]
+
+    if params[:ratings].to_a.length == 0 && session[:params]["ratings"].to_a.length > 0
+      new_params = {}
+      session[:params].each do |k,v|
+        new_params.merge!(k => v) unless k.to_s.include?(:ratings.to_s)
+        new_params.merge!(k => v) unless k.to_s.include?(:controller.to_s)
+        new_params.merge!(k => v) unless k.to_s.include?(:action.to_s)
+        new_params.merge!(k => session[:params]["ratings"]) if k.to_s.include?(:ratings.to_s)
+      end
+
+      redirect_to movies_path(new_params)
+    end
+    
+    @all_ratings = Movie.movie_ratings
+    @selected_key_ratings = params[:ratings].map{ | k,v |  k }.to_a if params[:ratings]
+    @selected_key_ratings = {} unless params[:ratings]
+
+    @movies = Movie.all.where(rating: @selected_key_ratings).order(params[:sort_param])
+
+    common_url_params = {}
+    @title_url_param = {}
+    @release_date_url_param = {}
+    
+    params.each do |k,v|
+      common_url_params.merge!(k => v) unless k.to_s.include?(:sort_param.to_s)
+    end
+    
+    @title_url_param.merge!(common_url_params).merge!(:sort_param => "title")
+    @release_date_url_param.merge!(common_url_params).merge!(:sort_param => "release_date")
+    
+    #save session
+    params.each do |k,v|
+      session[:params].merge!(k => v) unless k.to_s.include?(:ratings.to_s) and params[:ratings].to_a.length == 0
+      session[:params].merge!(k => v) if k.to_s.include?(:ratings.to_s) and params[:ratings].to_a.length > 0
+    end
   end
 
   def new
